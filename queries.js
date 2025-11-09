@@ -35,5 +35,29 @@ db.books.find().limit(5)
 // Page 2
 db.books.find().skip(5).limit(5)
 
+// Aggregation
+
+// 1. Average price of books by genre
+db.books.aggregate([
+  { $group: { _id: "$genre", averagePrice: { $avg: "$price" } } }
+])
+
+// 2. Author with the most books
+db.books.aggregate([
+  { $group: { _id: "$author", totalBooks: { $sum: 1 } } },
+  { $sort: { totalBooks: -1 } },
+  { $limit: 1 }
+])
+
+// 3. Group books by publication decade
+db.books.aggregate([
+  {
+    $project: {
+      decade: { $concat: [{ $substr: [{ $toString: { $subtract: ["$published_year", { $mod: ["$published_year", 10] }] } }, 0, 4] }, "s"] }
+    }
+  },
+  { $group: { _id: "$decade", count: { $sum: 1 } } },
+  { $sort: { _id: 1 } }
+])
 
 
